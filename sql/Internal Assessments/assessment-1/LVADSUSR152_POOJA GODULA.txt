@@ -1,0 +1,37 @@
+1. Highest data Usage subscribers in March 2024:
+	select CustomerID from CustomerUsage
+	where DataUsedGB>(select avg(DataUsedGB) from customerusage 
+	where Month='March' and Year='2024');
+2.select count(CustomerID),Month,Sum(VoiceMinutesUsed) 
+	from customerusage 
+	group by Month;
+3.(select sum(SMSCount),sum(DataUsedGB),Month
+from customerusage group by Month);
+4.select CategoryID,sum(TotalSalesAmount) 
+	from monthlysales
+	group by CategoryID;
+5.select Month,sum(TotalSalesAmount) as total
+	from monthlysales
+	group by Month with rollup;
+6. select Month,sum(TotalSalesAmount),quarter(Year(2024))
+ 	from monthlysales
+	group by Month;
+7.select Region,EnergySource from energyconsumption 
+where ConsumptionKWh>(select avg(ConsumptionKWh) from energyconsumption
+where Month='March' );
+8.(select Sector,sum(ConsumptionKWh) from energyconsumption
+where month='February' 
+group by sector with rollup)
+union(
+select Sector,sum(ConsumptionKWh) from energyconsumption
+where month='March' 
+group by sector with rollup);
+9.select ConsumptionKWh from energyconsumption
+where Month='February' and EnergySource='Fossil Fuels';
+10.select CustomerName from insurancepolicies
+where ClaimsCount=0 or FeedbackScore>(select avg(FeedbackScore) from insurancepolicies);
+11.select (AnnualPremium*ClaimsCount) as total 
+from insurancepolicies
+where ClaimsCount>1 and FeedbackScore>(select avg(FeedbackScore) from insurancepolicies);
+12.select avg(FeedbackScore),PolicyType from insurancepolicies
+group by PolicyType;
