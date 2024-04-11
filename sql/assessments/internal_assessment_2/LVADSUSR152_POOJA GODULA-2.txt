@@ -1,0 +1,98 @@
+						 INTERNAL ASSESSMENT-2
+
+
+1.select machine_id 
+	from l1_maintenance_records 
+	where cost>(select avg(cost) from l1_maintenance_records)
+	and monthname(maintenance_date)='March'and year(maintenance_date)="2024";
+
+2.select maintenance_type,count(maintenance_type) as freq 
+	from l1_maintenance_records 
+	where monthname(maintenance_date)='March'and year(maintenance_date)="2024"
+	group by maintenance_type;
+
+3.select technician_name,avg(cost),count(maintenance_id) as freq from l1_maintenance_records 
+	where monthname(maintenance_date)='March'and year(maintenance_date)="2024"
+	group by technician_name
+	order by avg(cost) desc;
+
+4.select product_id,
+	avg((incident_count_pre_update)-(incident_count_post_update)) as reduction_cost 
+	from l2_updates
+	group by product_id;
+
+5.select update_id,user_feedback_score from l2_updates
+	limit 1;
+
+6.select product_id,
+	(incident_count_pre_update-incident_count_post_update) as improv 
+	from l2_updates 
+	order by improv;
+7.create view patients_visit as
+	select p.patient_name,v.reason_for_visit, t.treatment,t.outcome,count(v.facility_id)
+	from l3_treatments t
+	join l3_visits v
+	on v.visit_id= t.visit_id
+	join l3_patients p
+	on p.patient_id=v.patient_id
+	join l3_facilities f
+	on f.facility_id=v.facility_id
+	where monthname(v.visit_date)='March' and year(v.visit_date)='2024'
+	group by p.patient_name,t.treatment,t.outcome
+	having count(v.facility_id)>=0;
+
+
+
+
+8.select f.facility_name,count(v.facility_id)
+	from l3_visits v
+	join l3_facilities f
+	on f.facility_id=v.facility_id
+	where monthname(v.visit_date)='March' and year(v.visit_date)='2024'
+	group by f.facility_name;
+
+
+
+9.select p.insurance_provider,t.treatment,count(t.treatment_id) as count_com
+	from l3_patients p
+	join l3_visits v
+	on p.patient_id= v.patient_id
+	join l3_treatments t
+	on t.visit_id=v.visit_id
+	where  quarter(v.visit_date)='1' and t.outcome='Complicated'
+	group by p.insurance_provider,t.treatment;
+
+
+10.select p.product_name,
+	p.category,
+	sum(s.quantity) as sum
+	from l4_products p
+	join l4_sales s
+	on p.product_id = s.product_id
+	where monthname(s.sale_date)='March' and year(s.sale_date)='2024'
+	group by p.product_name,p.category
+	order by sum desc
+	limit 1;
+
+11.create view Highest_sales as 
+	(select s.store_id,s.store_name,s.region,sum(p.price*A.quantity) as Total_sales
+	from l4_stores s
+	join l4_sales A
+	on s.store_id=A.store_id
+	join l4_products p
+	on A.product_id=p.product_id
+	group by s.store_id,s.store_name,s.region
+	order by Total_sales desc limit 1);
+
+     select region from highest_sales;
+
+
+12.select p.product_name,p.category,count(p.product_id) as count_product,s.region
+	from l4_stores s
+	right join l4_sales A
+	on s.store_id=A.store_id
+	right join l4_products p
+	on A.product_id=p.product_id
+	where monthname(A.sale_date)='March' and year(A.sale_date)='2024'
+	group by p.product_name,p.category,s.region
+	having count_product>=0;
