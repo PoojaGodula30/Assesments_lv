@@ -1,0 +1,181 @@
+FINAL ASSESSMENT
+Name:POOJA GODULA
+EmpID: 4360
+
+
+
+
+1. select 
+	p.product_category,
+	avg(sr.sales_amount) as average_sales
+	from sales_records sr
+	join products p
+	on sr.product_id =p.product_id
+	where sr.sales_date<=date_add(curdate(),interval 1 month)
+	group by p.product_category;
+
+
+
+2.  select 
+	p.product_name,
+	sum(sr.sales_amount) as total_sales
+	from sales_records sr
+	join products p
+	on sr.product_id =p.product_id
+    group by p.product_name
+    order by sum(sales_amount) desc
+    limit 3;
+
+
+3.  select ((select sr.sales_amount from sales_records sr)/t.total_revenue)* 100 
+		cume_dist over(partition by c.customer_id order by sr.sales_amount) as percent
+    from (
+    select ifnull(c.customer_id,'total'),sum(sr.sales_amount) as total_revenue from customers c
+    join sales_records sr
+    on c.customer_id=sr.customer_id
+    group by c.customer_id with rollup) as t
+
+
+4.  select case when purchase_count>4 then "Consistent_buyers"
+			else "Occassional_Buyers"
+            end 
+            from(
+    select count(s.product_id) as purchase_count,month(s.sales_date) as month from customers c
+    join sales_records s on c.customer_id=s.customer_id
+    where sales_date<=date_add(curdate(),interval 7 month)
+    group by month(s.sales_date));
+
+
+5.  select f.departure_airport,f.arrival_airport,avg(t.ticket_price) as average from flights f
+		join tickets t on f.flight_id=t.flight_id
+		group by f.departure_airport,f.arrival_airport;
+
+6.  select 
+	f.flight_number,
+	f.departure_date,
+    	count(t.ticket_id) as tickets_count 
+	from flights f
+	join tickets t on f.flight_id=t.flight_id
+	where t.ticket_date<=date_add(curdate(),interval 1 month)
+	group by f.flight_number,
+	f.departure_date
+	order by count(t.ticket_id) desc;
+
+7.   select  p.passenger_name,
+		p.frequent_flyer_status,
+        sum(t.ticket_price) as total
+	from flights f
+	join tickets t
+	on f.flight_id=t.flight_id
+	join passengers p
+	on p.passenger_id=t.passenger_id
+	group by p.passenger_name,
+		p.frequent_flyer_status
+	order by sum(ticket_price) desc
+	limit 5;
+
+
+8.   select  monthname(t.ticket_date) as month_tickets,
+        count(t.ticket_price) as total
+	from flights f
+	join tickets t
+	on f.flight_id=t.flight_id
+	group by month_tickets;
+
+9.   select p.player_name,g.game_genre,
+	avg(extract(minute from (datediff(p.registration_date,g.release_date)))) as minutes
+	from players p
+	join playerscores s
+	on p.player_id=s.player_id
+	join games g
+	on g.game_id=s.game_id
+	group by p.player_name,g.game_genre;
+
+
+10.   select g.game_name,count(p.player_id) as players_played
+	from players p
+	join playerscores s
+	on p.player_id=s.player_id
+	join games g
+	on g.game_id=s.game_id
+	group by  g.game_name;
+
+11.   select g.game_name,
+	count(p.player_id) as players_played,
+        avg(s.score) as average_score,
+        max(s.score) as highest_score
+	from players p
+	join playerscores s
+	on p.player_id=s.player_id
+	join games g
+	on g.game_id=s.game_id
+	group by  g.game_name;
+
+12.select p.player_name,p.registration_date,g.release_date
+from players p
+join playerscores s
+on p.player_id=s.player_id
+join games g
+on g.game_id=s.game_id
+where s.play_date not between p.registration_date and g.release_date and s.play_date<> date_add(curdate(),interval 1 month);
+
+
+13.   select d.doctor_name,sum(t.cost) as total from doctors d
+join treatments t
+on d.doctor_id= t.doctor_id
+group by d.doctor_name
+order by sum(t.cost) desc
+limit 5;
+
+
+14.with treatments as (
+select t.treatment_name,sum(t.cost) cume_dist over (partition by t.treatment_name order by t.cost) as total from doctors d
+join treatments t
+on d.doctor_id= t.doctor_id
+group by t.treatment_name with rollup
+order by sum(t.cost) desc)
+select treatment_name,(total/sum(total)) * 100
+from treatments
+group by treatment_name;
+
+15.select patient_id,patient_name,
+admission_date,discharge_date 
+from patients 
+where discharge_date<=date_add(curdate(),interval 1 month)
+order by admission_date ;
+
+
+16.select gender,diagnosis,abs(avg(datediff(admission_date,discharge_date))) as average from patients
+group by gender,diagnosis;
+
+
+17.select c.department,e.semester,avg(e.grade) as gpa from courses c
+join enrollments e
+on c.course_id=e.course_id
+group by c.department,e.semester
+order by c.department,e.semester;
+
+18.select s.major, count(e.student_id) as no_of_students,s.enrollment_year from students s
+join enrollments e
+on e.student_id=s.student_id
+group by s.major,s.enrollment_year
+order by count(e.student_id) desc;
+
+
+19.select s.student_id,s.student_name,e.semester,sum(c.credits) as total_credits from students s
+join enrollments e
+on e.student_id=s.student_id
+join courses c
+on c.course_id=e.course_id
+group by s.student_id,s.student_name,e.semester
+having sum(c.credits)>=50;
+
+20.select c.course_name,s.enrollment_year,count(e.student_id) as enrollements_count from students s
+join enrollments e
+on e.student_id=s.student_id
+join courses c
+on c.course_id=e.course_id
+/*where s.enrollment_year=s.enrollment_year-5*/
+group by c.course_name,s.enrollment_year
+order by count(e.student_id) desc
+limit 3;
